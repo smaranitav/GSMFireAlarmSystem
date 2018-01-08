@@ -1,0 +1,80 @@
+#include <SoftwareSerial.h>
+SoftwareSerial mySerial(9, 10);
+
+int sensor=A1;
+float temp_read,Temp_alert_val,Temp_shut_val;
+int sms_count=0,Fire_Set;
+
+
+void setup()
+{
+  pinMode(sensor,INPUT);
+  mySerial.begin(9600);   
+  Serial.begin(9600);      
+  delay(500);
+}
+
+void loop()
+{
+CheckFire();
+CheckShutDown();
+}
+
+void CheckFire()
+{
+Temp_alert_val=CheckTemp();
+if(Temp_alert_val>29)
+{
+ SetAlert(); // Function to send SMS Alerts
+}
+}
+
+float CheckTemp()
+{
+temp_read=analogRead(sensor); // reads the sensor output (Vout of LM35)
+temp_read=temp_read*5;    // converts the sensor reading to temperature
+temp_read=temp_read/10; // adds the decimal point
+Serial.print("current temperature");
+delay(200);
+Serial.print(temp_read);
+delay(200);
+Serial.println("oC");
+delay(200);
+return temp_read; // returns temperature value in degree celsius
+}
+
+void SetAlert()
+{
+while(sms_count<1) //Number of SMS Alerts to be sent
+{  
+  delay(200);
+  mySerial.println("message sent");
+  delay(200);
+SendTextMessage(); // Function to send AT Commands to GSM module
+}
+}
+
+void CheckShutDown()
+{
+if(Fire_Set==1)
+{
+
+Temp_shut_val=CheckTemp();
+if(Temp_shut_val<29)
+{
+sms_count=0;
+}}}
+
+void SendTextMessage()
+{
+  mySerial.println("AT+CMGF=1");    //To send SMS in Text Mode
+  delay(2000);
+  mySerial.println("AT+CMGS=\"+918861636668\"\r"); // change to the phone number you using 
+  delay(2000);
+  mySerial.println("GET YOUR THINGS AND RUN");//the content of the message
+  delay(200);
+  mySerial.println((char)26);//the stopping character
+  delay(5000);
+ 
+  sms_count++;
+}
